@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BIGDATA WEBAPP</title>
+  <link rel="stylesheet" type="text/css" href="./css/jquery-jvectormap-2.0.3.css" media="screen"/>
+  <link rel="stylesheet" type="text/css" href="./css/jquery.dataTables.min.css" media="screen"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="./js/jquery-3.3.1.js"></script>
+  <script src="./js/jquery.js"></script>
+  <script src="./js/jquery-jvectormap-2.0.3.min.js"></script>
+
+  <script src="./js/jquery-jvectormap-world-merc.js"></script>
+  <script src="./js/jquery.dataTables.min.js"></script>
+
+  <!-- <meta http-equiv="refresh" content="5"> -->
+</head>
+<body>
+  <p>Player WorldWide Geolocalization:</p>
+
+  <div id="world-map" style="width: 960px; height: 600px"></div>
+  <script language="JavaScript">
+
+    function fetchJSONFile(path, callback) {
+      var httpRequest = new XMLHttpRequest();
+      httpRequest.onreadystatechange = function() {
+          if (httpRequest.readyState === 4) {
+              if (httpRequest.status === 200) {
+                  var gdpData = JSON.parse(httpRequest.responseText);
+                  if (callback) callback(gdpData);
+              }
+          }
+      };
+      httpRequest.open('GET', path);
+      httpRequest.send(); 
+    }
+
+    fetchJSONFile('./connections.json', function(gdpData){
+      $('#world-map').vectorMap({
+        map: 'world_merc',
+        series: {
+          regions: [{
+            values: gdpData,
+            scale: ['#C8EEFF', '#0071A4'],
+            normalizeFunction: 'polynomial'
+          }]
+        },
+        onRegionTipShow: function(e, el, code){
+          el.html(el.html()+' (GDP - '+gdpData[code]+')');
+        }
+      });
+    });
+  </script>
+
+<style>
+  table {
+      border-collapse: collapse;
+      width: 75%;
+  }
+
+  th, td {
+      text-align: left;
+      padding: 8px;
+  }
+
+  tr:nth-child(even){background-color: #f2f2f2}
+
+  table tr:first-child {
+      background-color: #4CAF50;
+      color: white;
+  }
+  </style> 
+
+  <h1>Best Games:</h1>
+  <div id="best-games">
+  </div>
+
+  <h1>Tempo medio per sessione</h1>
+  <div id="table">
+  </div>
+ 
+  <h1>Player to City </h1>
+  <div id="table2city">
+  </div>
+ 
+  <h1>Player to Country </h1>
+  <div id="table2country">
+  </div>
+ 
+  <h1>Player to State </h1>
+  <div id="table2state">
+  </div>
+  
+  <script src="./js/d3.min.js?v=3.2.8"></script>
+  
+  <script type="text/javascript"charset="utf-8">
+    loadCSV("./games.csv", "#best-games");
+    loadCSV("./result/bestGame/bestGame.csv","#table");
+    loadCSV("./result/player2city/player2city.csv","#table2city");
+    loadCSV("./result/player2country/player2country.csv","#table2country");
+    loadCSV("./result/player2state/player2state.csv","#table2state");
+  
+    function loadCSV(path, idDiv) {
+      d3.text(path, function(data) {
+        var parsedCSV = d3.csv.parseRows(data);
+        var container = d3.select(idDiv)
+          .append("table")
+          .selectAll("tr")
+            .data(parsedCSV).enter()
+            .append("tr")
+          .selectAll("td")
+            .data(function(d) { return d; }).enter()
+            .append("td")
+            .text(function(d) { return d; });
+      });
+    }
+  </script>
+ 
+</body>
+</html>
